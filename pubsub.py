@@ -11,6 +11,8 @@ class PubSubPublisher:
         self.publisher_client = None
     
     def conn(self):
+        """Connect to PubSub Publisher
+        """
         try:
             self.publisher_client = pubsub.PublisherClient()
             self.topic_path       = self.publisher_client.topic_path(self.project_id, self.topic_id)
@@ -21,6 +23,8 @@ class PubSubPublisher:
             raise Exception(f'could not connect to pub/sub publisher client, {str(e)}')
     
     def set_new_topic(self, project_id: str, topic_name: str):
+        if not self.publisher_client:
+            raise Exception('No PubSub connection')
         self.project_id = project_id
         self.topic_name = topic_name
         self.topic_path = self._get_topic_path(project_id, topic_name)
@@ -29,6 +33,9 @@ class PubSubPublisher:
         """Publishes multiple messages to a Pub/Sub topic
         :param message (str) pubsub message
         """
+        if not self.publisher_client:
+            raise Exception('No PubSub connection')
+            
         encoded_data = message.encode('utf-8')
         future = self.publisher_client.publish(self.topic_path, data=encoded_data, attrs=attributes)
         logging.info("- published message {}".format(future.result()))
@@ -49,6 +56,8 @@ class PubSubSubscriber:
         self.subscriber_client = None
 
     def conn(self):
+        """Connect to PubSub Subscriber
+        """
         try:
             self.subscriber_client = pubsub.SubscriberClient()
             self.subscription_path = self.subscriber_client.subscription_path(self.project_id, self.subscription_name)
@@ -64,6 +73,9 @@ class PubSubSubscriber:
         :param timeout         (int)      Pub/Sub subscription timeout
         :param max_messages    (int)      Number of maximum message of pulling at once
         """
+        if not self.subscriber_client:
+            raise Exception('No PubSub connection')
+
         flow_control = ()
         if max_messages is not None:
             if isinstance(max_messages, int):
@@ -78,12 +90,15 @@ class PubSubSubscriber:
         with self.subscriber_client:
             try:
                 streaming_pull_future.result(timeout=timeout)
-            except Exception:
+            except Exception as ex:
                 streaming_pull_future.cancel()
+                logging.error(ex)
     
     @staticmethod
     def callback(message):
-        """Callback message example"""
+        """Callback message example
+        :param message (str)
+        """
         logging.info("received message: {}".format(message.data))
         if message.attributes:
             logging.info("attributes:")
