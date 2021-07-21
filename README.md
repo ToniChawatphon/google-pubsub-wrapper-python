@@ -1,7 +1,7 @@
 # google-pubsub-wrapper-python
-Google PubSub wrapper in python, consisting of Subscriber and Publisher
-## author
-- ToniChawatphon
+Pub/Sub is a flexible, reliable, real-time messaging service for independent applications to publish and subscribe to asynchronous events.  
+
+This repository is a python google-pubsub wrapper, consisting of pubsub subscriber and pubsub publisher.
 
 # Setup 
 ```
